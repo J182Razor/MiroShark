@@ -1,0 +1,122 @@
+openapi: 3.1.0
+info:
+  title: MiroShark Strategy Companion
+  version: 0.1.0
+  description: Single-operator advisory workspace. Distinct from the original MiroShark API.
+servers:
+  - url: http://127.0.0.1:5100
+security:
+  - workspaceToken: []
+components:
+  securitySchemes:
+    workspaceToken:
+      type: http
+      scheme: bearer
+  parameters:
+    RunId:
+      name: run_id
+      in: path
+      required: true
+      schema: {type: string, pattern: '^str_[0-9a-f]{32}$'}
+  schemas:
+    RunInput:
+      type: object
+      properties:
+        question: {type: string, maxLength: 3000}
+        context: {type: string, maxLength: 12000}
+        constraints: {type: string, maxLength: 4000}
+        demo: {type: boolean, default: false}
+        mode: {type: string, enum: [none, new, existing], default: none}
+        simulation_id: {type: string}
+        authorize_simulation: {type: boolean, default: false}
+        threshold: {type: number, minimum: 0.95, maximum: 1, default: 0.95}
+        max_iterations: {type: integer, minimum: 1, maximum: 4, default: 3}
+        rounds: {type: integer, minimum: 1, maximum: 30, default: 12}
+        evidence:
+          type: array
+          maxItems: 8
+          items:
+            type: object
+            required: [title, text]
+            properties:
+              title: {type: string, maxLength: 160}
+              text: {type: string, maxLength: 10000}
+paths:
+  /health:
+    get:
+      security: []
+      responses: {'200': {description: Process health only, not provider readiness}}
+  /api/config:
+    get:
+      responses: {'200': {description: Model names and presence flags; never provider secrets}, '401': {description: Unauthorized}, '503': {description: Access token not configured}}
+  /api/documents:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, base64]
+              properties:
+                name: {type: string}
+                base64: {type: string, maxLength: 1400000}
+      responses: {'200': {description: Extracted title and text}, '400': {description: Unsupported, invalid, or oversized content}}
+  /api/runs:
+    get:
+      responses: {'200': {description: Latest 100 analysis summaries}}
+    post:
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: {type: string, pattern: '^[A-Za-z0-9_-]{1,128}$'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RunInput'}
+      responses: {'202': {description: Stored analysis and assigned ID}, '400': {description: Invalid request or key conflict}, '429': {description: Queue full}, '503': {description: Live providers disabled or incomplete}}
+  /api/runs/{run_id}:
+    parameters: [{$ref: '#/components/parameters/RunId'}]
+    get:
+      responses: {'200': {description: Persisted run and latest 200 events}, '404': {description: Unknown run}}
+  /api/runs/{run_id}/approve:
+    parameters: [{$ref: '#/components/parameters/RunId'}]
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan_hash]
+              properties: {plan_hash: {type: string}}
+      responses: {'202': {description: Exact stored plan approved and queued}, '400': {description: Wrong hash or state}, '429': {description: Worker finishing or queue full; retry}}
+  /api/runs/{run_id}/cancel:
+    parameters: [{$ref: '#/components/parameters/RunId'}]
+    post:
+      description: Send an empty JSON object. Stops subsequent local work, not necessarily remote simulation work.
+      responses: {'200': {description: Saved cancellation state}}
+  /api/runs/{run_id}/review:
+    parameters: [{$ref: '#/components/parameters/RunId'}]
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verdict]
+              properties:
+                verdict: {type: string, enum: [useful, needs_revision]}
+                note: {type: string, maxLength: 3000}
+      responses: {'200': {description: Review saved separately from model scores}, '400': {description: Invalid verdict or unfinished run}}
+  /api/runs/{run_id}/export:
+    parameters: [{$ref: '#/components/parameters/RunId'}]
+    get:
+      parameters:
+        - name: format
+          in: query
+          schema: {type: string, enum: [md, json], default: md}
+      responses: {'200': {description: Private Markdown memo or JSON audit export}, '400': {description: Invalid format}}

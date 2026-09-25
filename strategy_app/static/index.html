@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light"><meta name="robots" content="noindex,nofollow">
+<title>MiroShark Strategy</title><link rel="stylesheet" href="/styles.css">
+<script type="module" src="/app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to analysis</a>
+<div class="workspace">
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="MiroShark Strategy home"><span class="brand-mark">M</span><span>MiroShark<span class="brand-sub">Strategy workspace</span></span></a>
+  <button id="new-analysis" class="new-button" type="button">+ New analysis</button>
+  <h2 class="sidebar-heading">Recent analyses</h2>
+  <nav id="history" aria-label="Analysis history"><p class="empty-history">Unlock your workspace to view saved analyses.</p></nav>
+  <div class="sidebar-footer"><p>Reason. Validate. Decide.</p><span>Advisory by design</span></div>
+</aside>
+<main id="main">
+  <header class="topbar"><span id="breadcrumb">New analysis</span><div class="inline-actions"><button id="toggle-history" class="link-button mobile-nav" type="button" aria-controls="history" aria-expanded="false">History</button><span id="connection">Workspace locked</span><button id="lock" class="link-button" hidden>Lock</button></div></header>
+  <div id="notice" class="global-notice" role="status" hidden></div>
+  <section id="access" class="access-panel">
+    <h1>Open your strategy workspace.</h1><p>Use your workspace access token. Provider API keys stay on the server.</p>
+    <form id="access-form"><label for="access-token">Workspace access token</label><div class="access-row"><input id="access-token" type="password" autocomplete="off" required minlength="24"><button class="primary" type="submit">Unlock</button></div></form>
+    <p class="helper">The token is kept only in this page’s memory and is cleared when you lock or reload.</p>
+  </section>
+  <section id="composer" hidden>
+    <div class="page-heading"><h1>What decision are you working through?</h1><p>Start with a question. Get a structured analysis you can inspect, challenge and act on.</p></div>
+    <div id="setup-message" class="setup-message" hidden></div>
+    <div class="compose-layout">
+    <form id="analysis-form" class="question-form">
+      <label for="question">Your question or idea</label><textarea id="question" rows="4" maxlength="3000" required placeholder="Should we expand this offer, change our approach, or keep the current model?"></textarea>
+      <label for="context">What do we know?</label><textarea id="context" rows="4" maxlength="12000" placeholder="Relevant facts, the decision you need to make, who it affects, and what success looks like."></textarea>
+      <label for="constraints">Constraints and non-negotiables</label><textarea id="constraints" rows="2" maxlength="4000" placeholder="Budget, time, existing commitments, prohibited actions. Leave unknown values unknown."></textarea>
+      <details class="evidence-input"><summary>Add supporting evidence <span id="evidence-count">0 records</span></summary>
+        <p class="helper">Paste source extracts or upload TXT, Markdown or DOCX. Maximum eight records, 10,000 characters each. Do not include passwords or unnecessary personal data.</p>
+        <label for="source-title">Source title</label><input id="source-title" maxlength="160" placeholder="Customer interviews, operating figures, research extract…">
+        <label for="source-text">Source extract</label><textarea id="source-text" rows="4" maxlength="10000"></textarea>
+        <div class="inline-actions"><button id="add-evidence" type="button" class="secondary">Add extract</button><label class="file-button">Upload document<input id="source-file" type="file" accept=".txt,.md,.docx"></label></div>
+        <ul id="evidence-list" class="evidence-list"></ul>
+      </details>
+      <details class="settings" open><summary>Analysis settings</summary>
+        <div class="settings-grid"><div><label for="mode">MiroShark scenario</label><select id="mode"><option value="none">Analysis only · no simulation</option><option value="new">Run a new simulation</option><option value="existing">Use a completed simulation</option></select></div><div><label for="threshold">Provisional acceptance threshold</label><input id="threshold" type="number" value="0.95" min="0.95" max="1" step="0.01"></div><div><label for="iterations">Maximum plan iterations</label><input id="iterations" type="number" value="3" min="1" max="4"></div><div id="rounds-field" hidden><label for="rounds">Maximum simulation rounds</label><input id="rounds" type="number" value="12" min="1" max="30"></div></div>
+        <div id="existing-field" hidden><label for="simulation-id">Completed simulation ID</label><input id="simulation-id" placeholder="sim_…" maxlength="104"></div>
+        <label id="simulation-permission" class="check-label" hidden><input id="authorize-simulation" type="checkbox">I authorize a new MiroShark simulation and its provider costs. The round limit does not cap agent count or dollar spend.</label>
+        <p class="helper">The 0.95 threshold is a raw model-judgment gate, not a 95% reliability or success claim.</p>
+      </details>
+      <div class="form-actions"><button id="run-live" type="submit" class="primary">Build analysis plan <span aria-hidden="true">→</span></button><button id="run-demo" type="button" class="secondary">Explore a synthetic example</button></div>
+      <p class="helper">Live runs send the supplied context to your configured providers. No outreach, trading, publishing or other business actions are executed.</p>
+    </form>
+    <aside class="method-note"><h2>From question to decision</h2><ol><li><strong>Frame the outcome</strong><span>A reasoning model defines the question, assumptions and smallest useful analysis steps.</span></li><li><strong>Check the plan</strong><span>Jev evaluates bounded criteria. Failed components go back for targeted repair.</span></li><li><strong>Approve and analyze</strong><span>You approve the exact plan. Atomic analysis runs with local output checks.</span></li><li><strong>Review the decision</strong><span>Inspect alternatives, sources, uncertainties and conditions that would change the recommendation.</span></li></ol><div class="method-boundary"><strong>Evidence stays visible.</strong><p>Supplied assertions, simulation observations and model interpretations remain distinct.</p></div></aside>
+    </div>
+  </section>
+  <section id="run-view" hidden>
+    <div class="run-heading"><div><h1 id="run-title"></h1><p id="run-created" class="helper"></p></div><div class="inline-actions"><button id="revise" class="secondary">Revise question</button><button id="cancel" class="danger" hidden>Cancel</button></div></div>
+    <div id="demo-banner" class="demo-banner" hidden>Synthetic demonstration. The example, provider replies and validation scores are fixtures. No live Jev or MiroShark call was made.</div>
+    <div class="run-status"><div><strong id="run-status-label"></strong><span id="run-progress"></span></div><progress id="progress" max="100" value="0"></progress><p id="run-message"></p><p id="remote-ids" class="helper"></p></div>
+    <div id="approval-panel" class="approval-panel" hidden><div><h2>Review the outcome before execution.</h2><p>The provisional plan checks passed. Inspect the Outcome Contract and atomic plan below, then approve this exact version.</p></div><button id="approve" class="primary">Approve outcome &amp; continue</button></div>
+    <div class="result-toolbar"><nav class="tabs" role="tablist" aria-label="Analysis views"><button role="tab" data-tab="summary" aria-selected="true">Analysis</button><button role="tab" data-tab="plan" aria-selected="false">Plan</button><button role="tab" data-tab="evidence" aria-selected="false">Evidence</button><button role="tab" data-tab="validation" aria-selected="false">Validation</button><button role="tab" data-tab="activity" aria-selected="false">Activity</button></nav><div class="inline-actions"><button id="download-md" class="link-button">Export Markdown</button><button id="download-json" class="link-button">Export JSON</button></div></div>
+    <div id="tab-content" role="tabpanel" aria-live="polite"></div>
+    <section id="human-review" class="human-review" hidden><h2>Record your review</h2><p class="helper">Your assessment is stored separately from the model scores. It is not automatically a calibration certificate.</p><label for="review-note">Notes or corrections</label><textarea id="review-note" rows="2" maxlength="3000"></textarea><div class="inline-actions"><button id="review-useful" class="secondary">Useful analysis</button><button id="review-revise" class="secondary">Needs revision</button><span id="review-result" class="helper"></span></div></section>
+  </section>
+  <footer class="workspace-footer">MiroShark Strategy · Advisory workspace · Raw confidence is not verified correctness.</footer>
+</main>
+</div>
+</body></html>
